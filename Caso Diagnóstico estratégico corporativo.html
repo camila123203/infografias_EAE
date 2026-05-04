@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cgo dashboard: Los 6 enemigos del crecimiento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Monochrome (White, Black, and Grayscale) -->
+    
+    <!-- Application Structure Plan: Dashboard Layout using a high-contrast monochromatic scheme. 
+         The sidebar button for reporting has been removed to streamline the flow. 
+         Access to the final summary is now managed solely through the contextual action button 
+         within the case feedback area after completing all diagnostics. -->
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16px; 
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333; 
+            border-radius: 4px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .no-italic {
+            font-style: normal !important;
+        }
+
+        .feedback-correct {
+            background-color: #000000;
+            border-color: #000000;
+            color: #ffffff;
+        }
+        .feedback-incorrect {
+            background-color: #4b5563; 
+            border-color: #1f2937; 
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-black text-white p-4 shadow-sm z-10 shrink-0 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Cgo strategic dashboard</h1>
+                <p class="text-gray-400 text-sm no-italic">El laberinto del crecimiento sostenible</p>
+            </div>
+            <div class="bg-gray-900 px-4 py-2 rounded flex items-center gap-3 border border-gray-700">
+                <span class="text-2xl" aria-hidden="true">👤</span>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold tracking-wider">Perfil activo</p>
+                    <p class="text-sm font-medium">Chief Growth Officer (Cgo)</p>
+                </div>
+                <div class="ml-4 pl-4 border-l border-gray-700 text-center">
+                    <p class="text-xs text-gray-400 font-bold">Puntuación</p>
+                    <p class="text-xl font-bold text-white" id="score-display">0/6</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <aside class="w-full md:w-80 bg-white border-r border-gray-300 overflow-y-auto shrink-0 flex flex-col">
+            <div class="p-5 border-b border-gray-300 bg-gray-50">
+                <h2 class="text-sm font-bold text-black tracking-wide mb-2">Expedientes activos</h2>
+                <p class="text-xs text-gray-700">Auditoría estratégica de escalado.</p>
+            </div>
+            <nav class="flex-1 p-3 flex flex-col gap-2" id="nav-menu">
+            </nav>
+            <div class="p-5 border-t border-gray-300 mt-auto bg-gray-50">
+                <p class="text-[10px] text-gray-500 text-center font-bold uppercase tracking-tight">Progrese a través de los casos para finalizar</p>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto bg-white p-4 md:p-8 relative" id="main-content">
+            
+            <div id="intro-view" class="max-w-3xl mx-auto bg-white p-8 border-2 border-black fade-in mt-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
+                <div class="text-5xl mb-6 text-center" aria-hidden="true">🏢</div>
+                <h2 class="text-3xl font-bold text-black mb-6 text-center tracking-tight">Diagnóstico estratégico corporativo</h2>
+                
+                <div class="prose prose-slate max-w-none text-black space-y-6">
+                    <p class="text-lg font-bold">Misión confidencial para el Chief Growth Officer (Cgo)</p>
+                    <p class="text-base leading-relaxed">Has sido nombrado Cgo en una de las firmas de capital riesgo más prestigiosas del mundo. Tu primera misión es realizar una auditoría de casos históricos de empresas que, a pesar de tener ideas revolucionarias, tropezaron en su camino hacia la cima.</p>
+                    
+                    <div class="bg-gray-100 border-l-4 border-black p-6 rounded-r my-6">
+                        <p class="text-xs font-bold text-black mb-2 tracking-wide">Nota metodológica:</p>
+                        <p class="text-base text-black m-0 no-italic">
+                            Esta experiencia combina <strong>casos empresariales reales</strong> con <strong>complementos narrativos y datos simulados</strong> diseñados para facilitar la inmersión pedagógica y el análisis estratégico. El objetivo es entrenar tu criterio mediante una simulación interactiva rigurosa.
+                        </p>
+                    </div>
+
+                    <p class="text-base">El mercado actual no perdona el crecimiento a cualquier precio. Identifica el fallo estratégico antes de que el capital se evapore.</p>
+                    
+                    <div class="bg-gray-50 border border-gray-300 p-6 rounded mt-6">
+                        <p class="font-bold text-black mb-3 text-sm tracking-widest">Instrucciones operativas:</p>
+                        <ul class="list-disc ml-6 space-y-2 text-black text-base">
+                            <li>Navega por los expedientes en el panel lateral.</li>
+                            <li>Analiza la situación y los datos visuales.</li>
+                            <li>Toma una decisión estratégica en la sección de "Reto".</li>
+                            <li>Puntuación basada en respuestas correctas al primer intento.</li>
+                        </ul>
+                    </div>
+                </div>
+                <button onclick="app.loadCase(0)" class="mt-10 w-full py-4 bg-black text-white rounded font-bold shadow-md transition-all text-lg tracking-widest hover:bg-gray-800">
+                    Iniciar evaluación
+                </button>
+            </div>
+
+            <div id="case-view" class="hidden max-w-5xl mx-auto space-y-8 fade-in pb-12">
+                
+                <div class="bg-white border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+                    <div class="border-b-2 border-black p-6 bg-gray-50 flex items-center gap-6">
+                        <div id="case-icon" class="text-4xl bg-white p-4 border border-black shadow-sm" aria-hidden="true"></div>
+                        <div>
+                            <p id="case-subtitle" class="text-black font-bold tracking-widest text-xs mb-1"></p>
+                            <h2 id="case-title" class="text-2xl font-bold text-black"></h2>
+                        </div>
+                    </div>
+                    
+                    <div class="p-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div>
+                            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b border-gray-200 pb-2">Contexto estratégico</h3>
+                            <p id="case-situation" class="text-black leading-relaxed text-base mb-8"></p>
+                            
+                            <div class="bg-gray-50 border border-gray-300 border-l-4 border-l-black p-6 rounded">
+                                <h4 class="font-bold text-black mb-3 flex items-center gap-2 text-xs tracking-widest uppercase">
+                                    <span aria-hidden="true">📊</span> Análisis de datos
+                                </h4>
+                                <p id="case-data-info" class="text-base text-black font-medium"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded p-6 shadow-inner flex flex-col justify-center">
+                            <div class="chart-container w-full">
+                                <canvas id="caseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-black overflow-hidden relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+                    <div class="p-8">
+                        <h3 class="text-xl font-bold text-black mb-6 flex items-center gap-4 tracking-tight">
+                            <span class="bg-black text-white w-10 h-10 rounded-full flex items-center justify-center text-base" aria-hidden="true">❓</span>
+                            Punto de decisión del Cgo
+                        </h3>
+                        <p id="case-challenge" class="text-black font-bold text-lg mb-8 ml-14"></p>
+                        
+                        <div id="options-container" class="space-y-3 ml-14">
+                        </div>
+
+                        <div id="hint-container" class="mt-10 ml-14 flex items-start gap-4 bg-gray-50 p-6 border border-gray-300">
+                            <span class="text-black text-2xl" aria-hidden="true">💡</span>
+                            <p id="case-hint" class="text-sm text-gray-800 font-medium no-italic"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="feedback-container" class="hidden p-8 shadow-md border-2 text-white transform transition-all duration-300">
+                    <div class="flex items-start gap-6">
+                        <div id="feedback-icon" class="text-5xl" aria-hidden="true"></div>
+                        <div class="flex-1">
+                            <h3 id="feedback-title" class="text-2xl font-bold mb-4 tracking-tight"></h3>
+                            <p id="feedback-message" class="text-lg mb-6 leading-relaxed font-medium"></p>
+                            
+                            <div class="bg-white/10 border border-white/20 p-6 mt-6 rounded">
+                                <h4 class="font-bold text-xs uppercase tracking-widest mb-3 text-white/90 flex items-center gap-2">
+                                    <span aria-hidden="true">🧠</span> Takeaway estratégico
+                                </h4>
+                                <p id="feedback-strategy" class="text-base leading-relaxed no-italic"></p>
+                            </div>
+                            
+                            <div class="mt-10 flex justify-end">
+                                <button id="btn-next" onclick="app.nextCase()" class="px-8 py-3 bg-white text-black rounded font-bold shadow-md hover:bg-gray-100 transition-all text-sm tracking-widest">
+                                    Siguiente expediente ➔
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div id="summary-view" class="hidden max-w-3xl mx-auto bg-white p-10 border-2 border-black mt-8 fade-in text-center shadow-[12px_12px_0px_0px_rgba(0,0,0,0.1)]">
+                <div class="text-7xl mb-8" id="summary-emoji" aria-hidden="true">🏆</div>
+                <h2 class="text-3xl font-bold text-black mb-4 tracking-tight">Reporte de auditoría completado</h2>
+                <p class="text-gray-700 text-lg mb-10">Has finalizado la revisión estratégica.</p>
+                
+                <div class="inline-block bg-gray-50 border-2 border-black p-10 mb-10">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Precisión estratégica (Primer intento)</p>
+                    <p class="text-8xl font-black text-black mb-4"><span id="final-score"></span>/6</p>
+                    <p id="final-evaluation" class="text-lg font-bold mt-6 tracking-wide"></p>
+                </div>
+                
+                <div class="text-left bg-black text-white p-8 border border-black mb-8">
+                    <h3 class="text-white font-bold text-base tracking-widest mb-4">Conclusión del portfolio</h3>
+                    <p class="text-base leading-relaxed no-italic opacity-90">El crecimiento sostenible depende de la capacidad de convertir la innovación en un modelo sólido, rentable y estructuralmente escalable.</p>
+                </div>
+                
+                <button onclick="location.reload()" class="mt-8 px-10 py-4 bg-gray-200 hover:bg-gray-300 text-black rounded font-bold transition-all text-sm border border-gray-400 tracking-widest">
+                    Reiniciar simulación
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const casesData = [
+            {
+                id: 0,
+                enemy: "Escalar demasiado pronto",
+                company: "Gorillas",
+                icon: "🛒",
+                year: "2020",
+                situation: "Estás analizando Gorillas en 2020. La demanda de comida a domicilio está explotando. Tienes cientos de 'dark stores' y una valoración de unicornio. Sin embargo, a más pedidos, más dinero pierde la compañía.",
+                dataInfo: "El coste de entrega + alquiler + personal supera el margen de beneficio por cada ticket promedio de compra. Escalado = Multiplicación de pérdidas.",
+                challenge: "¿Qué acción priorizarías para salvar el modelo de negocio?",
+                options: [
+                    "A) Expandirnos a 5 nuevas ciudades para intentar ganar economía de escala rápidamente.",
+                    "B) Optimizar los unit economics y la eficiencia de las dark stores antes de abrir una sola tienda más.",
+                    "C) Aumentar agresivamente el gasto en marketing para saturar el mercado y desplazar a la competencia."
+                ],
+                correctOption: 1,
+                hint: "Escalar un modelo que pierde dinero por cada unidad vendida solo hace que el agujero sea más grande a mayor velocidad.",
+                feedback: {
+                    positive: "Excelente visión estratégica. Sin un margen de contribución positivo, el escalado es un suicidio financiero. Has priorizado la base del negocio sobre la expansión vacía.",
+                    negative: "Decisión arriesgada. Escalar un modelo ineficiente solo acelera el colapso financiero. Estás amplificando el error operativo."
+                },
+                strategy: "Gorillas demostró que escalar sin sostenibilidad económica amplifica los fallos. Si el coste operativo por pedido es mayor al valor generado, el crecimiento es tu enemigo.",
+                chartConfig: {
+                    type: 'bar',
+                    data: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4 (Escalado)'],
+                        datasets: [
+                            { label: 'Ingreso / pedido', data: [15, 15, 15.5, 15], backgroundColor: '#000000' },
+                            { label: 'Coste / pedido', data: [17, 18, 22, 26], backgroundColor: '#999999' }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Unit economics (Monocromo)', font: { size: 14, weight: 'bold' }, color: '#000000' },
+                            legend: { labels: { color: '#000000', font: { size: 12 } } }
+                        },
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { color: '#000000' } },
+                            x: { ticks: { color: '#000000' } }
+                        }
+                    }
+                }
+            },
+            {
+                id: 1,
+                enemy: "Falta de foco",
+                company: "WeWork",
+                icon: "🏢",
+                year: "Expansión",
+                situation: "La directiva quiere que WeWork sea 'la empresa del estilo de vida global'. Están abriendo gimnasios y escuelas. Pero el negocio principal de alquiler de oficinas aún no es rentable.",
+                dataInfo: "Modelo intensivo en activos inmobiliarios, con obligaciones a largo plazo frente a rentas de clientes a muy corto plazo. Dispersión total de capital.",
+                challenge: "¿Cuál identificas como el riesgo principal de esta expansión multilineal?",
+                options: [
+                    "A) La falta de diversificación de ingresos es lo que nos está matando.",
+                    "B) La desconexión entre nuestra narrativa 'tecnológica' y la realidad inmobiliaria, que está diluyendo recursos.",
+                    "C) No hemos invertido lo suficiente en publicidad aspiracional en redes sociales."
+                ],
+                correctOption: 1,
+                hint: "La estrategia consiste fundamentalmente en decidir qué no vas a hacer.",
+                feedback: {
+                    positive: "Correcto. Has detectado la dispersión. La falta de foco genera ineficiencias críticas y desconfianza letal en los inversores.",
+                    negative: "Error de diagnóstico. El problema no es la falta de ingresos, sino que estamos perdiendo la esencia y quemando capital en negocios que no dominamos."
+                },
+                strategy: "La dispersión estratégica fragmentó los recursos de WeWork. Un modelo sostenible requiere que todas las unidades apunten hacia una ventaja competitiva clara.",
+                chartConfig: {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Core', 'Educación', 'Vivienda', 'Otros'],
+                        datasets: [{
+                            data: [40, 20, 20, 20],
+                            backgroundColor: ['#000000', '#333333', '#666666', '#999999'],
+                            borderWidth: 1,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Distribución de inversión', font: { size: 14, weight: 'bold' }, color: '#000000' },
+                            legend: { position: 'bottom', labels: { color: '#000000' } }
+                        },
+                        cutout: '50%'
+                    }
+                }
+            },
+            {
+                id: 2,
+                enemy: "Complejidad operativa",
+                company: "Tesla",
+                icon: "⚡",
+                year: "Fase inicial Model 3",
+                situation: "El Model 3 es un éxito en preventas, pero la fábrica está en el 'infierno de producción'. Los robots fallan y los procesos manuales alternativos son lentos y caóticos.",
+                dataInfo: "Existen cuellos de botella masivos que impiden alcanzar la cuota objetivo. La demanda supera abismalmente a la capacidad instalada actual.",
+                challenge: "¿Cómo abordarías este colapso para permitir el crecimiento sostenido?",
+                options: [
+                    "A) Contratar el triple de personal para trabajar 24/7 sin modificar los procesos actuales.",
+                    "B) Detener y rediseñar procesos clave para eliminar cuellos de botella antes de intentar aumentar el ritmo.",
+                    "C) Subir drásticamente el precio del vehículo para reducir la demanda y ganar tiempo."
+                ],
+                correctOption: 1,
+                hint: "Un proceso que funciona para 10 unidades puede colapsar totalmente al intentar producir 10.000.",
+                feedback: {
+                    positive: "Decisión correcta. La complejidad operativa requiere reingeniería y pausa estratégica para poder escalar con seguridad después.",
+                    negative: "Cuidado. Inyectar más personal en un proceso roto solo genera más caos. El sistema de fabricación no escala por fuerza bruta."
+                },
+                strategy: "Tesla aprendió que la excelencia operativa es el cimiento del escalado. Sin procesos optimizados y estables, el crecimiento es físicamente imposible.",
+                chartConfig: {
+                    type: 'line',
+                    data: {
+                        labels: ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5'],
+                        datasets: [
+                            { label: 'Demanda', data: [100, 250, 400, 450, 500], borderColor: '#000000', borderWidth: 3, tension: 0.2 },
+                            { label: 'Producción', data: [10, 15, 12, 30, 50], borderColor: '#999999', borderWidth: 3, borderDash: [5, 5], tension: 0 }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Capacidad vs demanda', font: { size: 14, weight: 'bold' }, color: '#000000' }
+                        },
+                        scales: { 
+                            y: { ticks: { color: '#000000' } },
+                            x: { ticks: { color: '#000000' } }
+                        }
+                    }
+                }
+            },
+            {
+                id: 3,
+                enemy: "Desalineación del negocio",
+                company: "Uber",
+                icon: "🚗",
+                year: "Expansión agresiva",
+                situation: "Uber crece en 50 países, pero la prensa reporta una cultura interna tóxica y constantes conflictos legales. El liderazgo fundacional está bajo fuego.",
+                dataInfo: "Tensión extrema con stakeholders externos e internos. Riesgo de pérdida masiva de licencias para operar.",
+                challenge: "¿Por qué consideras que la cultura y la gobernanza son críticas para sostener el crecimiento?",
+                options: [
+                    "A) Porque la reputación y la estabilidad interna son activos que protegen nuestra viabilidad y licencia social.",
+                    "B) En esta fase lo único que importa es capturar cuota de mercado rápido, el resto es secundario.",
+                    "C) Solo deben preocuparnos si las multas superan nuestro margen de beneficio proyectado."
+                ],
+                correctOption: 0,
+                hint: "El crecimiento agresivo sin gobernanza sólida es como conducir un bólido de carreras sin frenos.",
+                feedback: {
+                    positive: "Exacto. La ética y la alineación interna no son opcionales, son pilares de la estabilidad a largo plazo del valor de marca.",
+                    negative: "Visión peligrosa. El mercado castiga los modelos que no son éticos. La cuota de mercado no sirve si te prohíben legalmente operar."
+                },
+                strategy: "Uber enfrentó crisis que amenazaron su licencia de operación. El crecimiento sin alineación con el entorno normativo y las personas es frágil.",
+                chartConfig: {
+                    type: 'radar',
+                    data: {
+                        labels: ['Mercado', 'Velocidad', 'Cultura', 'Regulación', 'Talento'],
+                        datasets: [{
+                            label: 'Kpis',
+                            data: [95, 90, 20, 30, 40],
+                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                            borderColor: '#000000',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#000000'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Salud corporativa', font: { size: 14, weight: 'bold' }, color: '#000000' }
+                        },
+                        scales: { r: { min: 0, max: 100, ticks: { display: false } } }
+                    }
+                }
+            },
+            {
+                id: 4,
+                enemy: "No adaptar la solución",
+                company: "MySpace",
+                icon: "👥",
+                year: "Mediados 2000s",
+                situation: "Eres líder con millones de usuarios. Un competidor aparece con un diseño más simple y mejores herramientas. Tu plataforma se siente caótica y obsoleta.",
+                dataInfo: "Plataforma saturada de publicidad, visualmente desordenada y con fallos de usabilidad frente a estándares modernos.",
+                challenge: "¿Qué error estratégico estamos cometiendo al ignorar esta evolución del usuario?",
+                options: [
+                    "A) Deberíamos intentar comprar a la competencia mediante una opa antes de que crezcan.",
+                    "B) Debemos adaptar nuestra propuesta urgentemente a las nuevas expectativas de simplicidad del usuario.",
+                    "C) Necesitamos incluir más publicidad para maximizar los ingresos antes de que caiga el tráfico."
+                ],
+                correctOption: 1,
+                hint: "El mercado no te pertenece; solo te lo prestan mientras seas la mejor solución para el usuario.",
+                feedback: {
+                    positive: "¡Correcto! Has puesto al usuario en el centro. La falta de adaptación a la experiencia de usuario es una sentencia de muerte tecnológica.",
+                    negative: "Error. Intentar monetizar más cuando el producto falla solo acelera la fuga de usuarios hacia la alternativa más limpia."
+                },
+                strategy: "MySpace se enfocó en exprimir su plataforma en lugar de evolucionarla. Otros redefinieron el estándar y MySpace quedó obsoleta rápidamente.",
+                chartConfig: {
+                    type: 'line',
+                    data: {
+                        labels: ['2005', '2006', '2007', '2008', '2009'],
+                        datasets: [
+                            { label: 'MySpace', data: [20, 50, 90, 115, 70], borderColor: '#666666', borderWidth: 2, tension: 0.1 },
+                            { label: 'Facebook', data: [0, 10, 50, 100, 300], borderColor: '#000000', borderWidth: 3, tension: 0.1 }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Usuarios (Millones)', font: { size: 14, weight: 'bold' }, color: '#000000' }
+                        }
+                    }
+                }
+            },
+            {
+                id: 5,
+                enemy: "Falta de talento crítico",
+                company: "OpenAI",
+                icon: "🤖",
+                year: "Reciente",
+                situation: "Lideras la revolución de la IA. De pronto, una crisis en la junta directiva provoca que el 90% de tus empleados clave amenacen con renunciar en bloque.",
+                dataInfo: "Gobernanza dual compleja y una dependencia extrema de talento altamente especializado que es escaso a nivel mundial.",
+                challenge: "Como Cgo, ¿qué vulnerabilidad estructural y estratégica ves revelada aquí?",
+                options: [
+                    "A) Deberíamos automatizar más procesos internos para no depender tanto de ingenieros humanos.",
+                    "B) La dependencia crítica de talento irreemplazable y la fragilidad de una gobernanza desalineada con la misión.",
+                    "C) Es solo un problema pasajero; con bonos y mejores sueldos todo el mundo se quedará."
+                ],
+                correctOption: 1,
+                hint: "En innovación de frontera, el talento no es un recurso intercambiable, es el motor principal del valor de la empresa.",
+                feedback: {
+                    positive: "Muy acertado. La viabilidad de estas organizaciones depende de una gobernanza que alinee y proteja a su talento crítico.",
+                    negative: "Subestimas el problema. En tecnología extrema, el dinero no retiene el talento si el liderazgo y la misión están rotos."
+                },
+                strategy: "OpenAI mostró que incluso los líderes tecnológicos son vulnerables a crisis de gobernanza. Sin alineación en la cúpula, la estructura colapsa.",
+                chartConfig: {
+                    type: 'pie',
+                    data: {
+                        labels: ['Talento crítico', 'Operaciones', 'Activos'],
+                        datasets: [{
+                            data: [75, 15, 10],
+                            backgroundColor: ['#000000', '#666666', '#cccccc'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Dependencia de valor', font: { size: 14, weight: 'bold' }, color: '#000000' }
+                        }
+                    }
+                }
+            }
+        ];
+
+        const app = {
+            currentCaseId: null,
+            score: 0,
+            casesCompleted: new Set(),
+            firstTrySuccess: new Set(),
+            chartInstance: null,
+
+            init() {
+                this.renderNav();
+                window.addEventListener('resize', () => {
+                    if(this.chartInstance) this.chartInstance.resize();
+                });
+            },
+
+            renderNav() {
+                const nav = document.getElementById('nav-menu');
+                nav.innerHTML = '';
+                
+                casesData.forEach((c, index) => {
+                    const isCompleted = this.casesCompleted.has(c.id);
+                    const isSuccess = this.firstTrySuccess.has(c.id);
+                    
+                    let statusIcon = '';
+                    if (isCompleted) {
+                        statusIcon = isSuccess ? '✅' : '❌';
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = `w-full text-left p-4 rounded flex items-center gap-4 transition-all border ${this.currentCaseId === c.id ? 'bg-gray-100 border-black text-black shadow-inner' : 'bg-white border-gray-300 text-gray-800 hover:bg-gray-50'}`;
+                    btn.onclick = () => this.loadCase(index);
+                    btn.innerHTML = `
+                        <span class="text-2xl w-8 text-center" aria-hidden="true">${c.icon}</span>
+                        <div class="flex-1 truncate">
+                            <span class="block truncate font-bold text-sm tracking-wider">${c.enemy}</span>
+                            <span class="text-xs text-gray-600 font-medium truncate uppercase">${c.company}</span>
+                        </div>
+                        <span class="font-bold text-lg" aria-label="Estado">${statusIcon}</span>
+                    `;
+                    nav.appendChild(btn);
+                });
+            },
+
+            loadCase(index) {
+                const c = casesData[index];
+                this.currentCaseId = c.id;
+                
+                document.getElementById('intro-view').classList.add('hidden');
+                document.getElementById('summary-view').classList.add('hidden');
+                document.getElementById('case-view').classList.remove('hidden');
+                
+                const feedbackEl = document.getElementById('feedback-container');
+                feedbackEl.classList.add('hidden');
+                feedbackEl.className = 'hidden p-8 shadow-md border-2 text-white transform transition-all duration-300';
+                
+                const optionsContainer = document.getElementById('options-container');
+                optionsContainer.innerHTML = '';
+                
+                c.options.forEach((optText, optIndex) => {
+                    const isCompleted = this.casesCompleted.has(c.id);
+                    const btn = document.createElement('button');
+                    btn.className = `w-full text-left p-5 rounded border border-gray-400 bg-white hover:border-black hover:bg-gray-50 text-black font-bold text-sm transition-all ${isCompleted ? 'opacity-50 cursor-not-allowed' : 'shadow-sm'}`;
+                    btn.innerText = optText;
+                    btn.disabled = isCompleted;
+                    btn.onclick = () => this.handleChoice(optIndex);
+                    optionsContainer.appendChild(btn);
+                });
+
+                document.getElementById('case-icon').innerText = c.icon;
+                document.getElementById('case-subtitle').innerText = `Expediente: ${c.company} | ${c.year}`;
+                document.getElementById('case-title').innerText = c.enemy;
+                document.getElementById('case-situation').innerText = c.situation;
+                document.getElementById('case-data-info').innerText = c.dataInfo;
+                document.getElementById('case-challenge').innerText = c.challenge;
+                document.getElementById('case-hint').innerText = c.hint;
+
+                this.renderChart(c.chartConfig);
+                this.renderNav();
+                document.getElementById('main-content').scrollTop = 0;
+            },
+
+            renderChart(config) {
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+                const ctx = document.getElementById('caseChart').getContext('2d');
+                Chart.defaults.font.family = 'Arial, Helvetica, sans-serif';
+                Chart.defaults.color = '#000000'; 
+                this.chartInstance = new Chart(ctx, config);
+            },
+
+            handleChoice(selectedIndex) {
+                const c = casesData.find(x => x.id === this.currentCaseId);
+                const isCorrect = selectedIndex === c.correctOption;
+                
+                if (!this.casesCompleted.has(c.id)) {
+                    this.casesCompleted.add(c.id);
+                    if (isCorrect) {
+                        this.firstTrySuccess.add(c.id);
+                        this.score++;
+                        document.getElementById('score-display').innerText = `${this.score}/6`;
+                    }
+                }
+
+                const buttons = document.getElementById('options-container').children;
+                for (let i = 0; i < buttons.length; i++) {
+                    buttons[i].disabled = true;
+                    buttons[i].classList.remove('hover:border-black', 'hover:bg-gray-50', 'border-gray-400');
+                    if (i === c.correctOption) {
+                        buttons[i].classList.add('border-black', 'bg-gray-100', 'text-black', 'border-2');
+                    } else if (i === selectedIndex && !isCorrect) {
+                        buttons[i].classList.add('border-gray-600', 'bg-gray-50', 'text-gray-600', 'border-2');
+                    } else {
+                        buttons[i].classList.add('opacity-40', 'border-gray-300');
+                    }
+                }
+
+                this.showFeedback(c, isCorrect);
+                this.renderNav();
+            },
+
+            showFeedback(caseData, isCorrect) {
+                const container = document.getElementById('feedback-container');
+                const title = document.getElementById('feedback-title');
+                const msg = document.getElementById('feedback-message');
+                const icon = document.getElementById('feedback-icon');
+                const strategy = document.getElementById('feedback-strategy');
+                const btnNext = document.getElementById('btn-next');
+
+                container.classList.remove('hidden');
+                strategy.innerText = caseData.strategy;
+
+                if (isCorrect) {
+                    container.classList.add('feedback-correct');
+                    icon.innerText = '✅';
+                    title.innerText = 'Diagnóstico correcto';
+                    msg.innerText = caseData.feedback.positive;
+                } else {
+                    container.classList.add('feedback-incorrect');
+                    icon.innerText = '❌';
+                    title.innerText = 'Riesgo crítico';
+                    msg.innerText = caseData.feedback.negative;
+                }
+
+                if (this.casesCompleted.size === casesData.length) {
+                    btnNext.innerText = 'Ver reporte final ➔';
+                    btnNext.onclick = () => this.showSummary();
+                } else {
+                    btnNext.innerText = 'Siguiente expediente ➔';
+                    btnNext.onclick = () => this.nextCase();
+                }
+
+                setTimeout(() => {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 150);
+            },
+
+            nextCase() {
+                const currentIndex = casesData.findIndex(x => x.id === this.currentCaseId);
+                let nextIndex = (currentIndex + 1) % casesData.length;
+                for(let i=0; i<casesData.length; i++) {
+                    let checkIndex = (currentIndex + 1 + i) % casesData.length;
+                    if(!this.casesCompleted.has(casesData[checkIndex].id)){
+                        nextIndex = checkIndex;
+                        break;
+                    }
+                }
+                this.loadCase(nextIndex);
+            },
+
+            showSummary() {
+                document.getElementById('case-view').classList.add('hidden');
+                document.getElementById('intro-view').classList.add('hidden');
+                const summary = document.getElementById('summary-view');
+                summary.classList.remove('hidden');
+                
+                document.getElementById('final-score').innerText = this.score;
+                const evalText = document.getElementById('final-evaluation');
+                const emoji = document.getElementById('summary-emoji');
+                
+                if (this.score === 6) {
+                    evalText.innerText = "Visión estratégica impecable.";
+                    emoji.innerText = "🌟";
+                } else if (this.score >= 4) {
+                    evalText.innerText = "Buen instinto analítico.";
+                    emoji.innerText = "📈";
+                } else {
+                    evalText.innerText = "Precaución: auditoría crítica.";
+                    emoji.innerText = "📉";
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
