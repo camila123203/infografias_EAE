@@ -10,9 +10,7 @@ Este repositorio contiene infografías interactivas en HTML publicadas con GitHu
 
 ## Analítica
 
-Las infografías incluyen Google Analytics 4 para seguimiento de:
-- visitas a cada página
-- interacciones dentro de las infografías
+(Pendiente)
 
 ## Cómo añadir una nueva infografía
 
